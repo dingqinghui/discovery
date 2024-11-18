@@ -69,6 +69,9 @@ func (d *discovery) GetById(kind string) (common.IMember, error) {
 	if err != nil {
 		return nil, err
 	}
+	if res == nil {
+		return nil, nil
+	}
 	return res.(common.IMember), nil
 }
 
@@ -77,6 +80,9 @@ func (d *discovery) GetByKind(kind string) ([]common.IMember, error) {
 	if err != nil {
 		return nil, err
 	}
+	if res == nil {
+		return nil, nil
+	}
 	return res.([]common.IMember), nil
 }
 
@@ -84,6 +90,9 @@ func (d *discovery) GetAll() ([]common.IMember, error) {
 	res, err := d.requestCache("GetAll", "")
 	if err != nil {
 		return nil, err
+	}
+	if res == nil {
+		return nil, nil
 	}
 	return res.([]common.IMember), nil
 }
@@ -100,9 +109,6 @@ func (d *discovery) requestCache(funcName string, message interface{}) (interfac
 	if isTimeout {
 		zlog.Error("discovery call cache actor err", zap.String("funcName", funcName), zap.Error(errCacheRequestTimeout))
 		return nil, errCacheRequestTimeout
-	}
-	if res == nil {
-		return nil, nil
 	}
 	return res, nil
 }
