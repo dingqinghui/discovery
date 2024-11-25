@@ -25,9 +25,13 @@ var (
 
 type IDiscovery interface {
 	component.IComponent
-	GetById(kind string) (common.IMember, error)
-	GetByKind(kind string) ([]common.IMember, error)
-	GetAll() ([]common.IMember, error)
+	GetById(kind string) (*common.Member, error)
+	GetByKind(kind string) ([]*common.Member, error)
+	GetAll() ([]*common.Member, error)
+}
+
+type MemberList struct {
+	Members []*common.Member
 }
 
 func New(options ...Option) IDiscovery {
@@ -38,8 +42,8 @@ func New(options ...Option) IDiscovery {
 
 type discovery struct {
 	component.BuiltinComponent
-	opts     *Options
-	cachePid actor.IProcess
+	opts *Options
+	hub  actor.IProcess
 }
 
 func (d *discovery) Name() string {
@@ -47,68 +51,59 @@ func (d *discovery) Name() string {
 }
 
 func (d *discovery) Init() {
-	s := &cacheActor{opts: d.opts}
+	s := &hubActor{opts: d.opts}
 	blueprint := actor.NewBlueprint()
 	pid, err := d.opts.system.Spawn(blueprint, func() actor.IActor { return s }, nil)
 	if err != nil {
 		zlog.Panic("new discovery cache err", zap.Error(err))
 		return
 	}
-	d.cachePid = pid
+	d.hub = pid
+}
+
+func (d *discovery) GetById(nodeId string) (*common.Member, error) {
+	reply := new(common.Member)
+	err := d.requestHub("GetById", nodeId, reply)
+	if err != nil {
+		return nil, err
+	}
+	return reply, nil
+}
+
+func (d *discovery) GetByKind(kind string) ([]*common.Member, error) {
+	reply := new(MemberList)
+	err := d.requestHub("GetByKind", kind, reply)
+	if err != nil {
+		return nil, err
+	}
+	return reply.Members, err
+}
+
+func (d *discovery) GetAll() ([]*common.Member, error) {
+	reply := new(MemberList)
+	err := d.requestHub("GetAll", nil, &reply)
+	if err != nil {
+		return nil, err
+	}
+	return reply.Members, err
+}
+
+func (d *discovery) requestHub(funcName string, arg, reply interface{}) error {
+	if d.hub == nil {
+		zlog.Error("discovery call cache actor err", zap.String("funcName", funcName), zap.Error(errCacheNotInit))
+		return errCacheNotInit
+	}
+	err := d.hub.Call(funcName, time.Second, arg, reply)
+	if err != nil {
+		zlog.Error("discovery call cache actor err", zap.String("funcName", funcName), zap.Error(err))
+		return err
+	}
+	return nil
 }
 
 func (d *discovery) Stop() {
-	if d.cachePid == nil {
+	if d.hub == nil {
 		return
 	}
-	_ = d.cachePid.Stop()
-}
-
-func (d *discovery) GetById(kind string) (common.IMember, error) {
-	res, err := d.requestCache("GetKind", kind)
-	if err != nil {
-		return nil, err
-	}
-	if res == nil {
-		return nil, nil
-	}
-	return res.(common.IMember), nil
-}
-
-func (d *discovery) GetByKind(kind string) ([]common.IMember, error) {
-	res, err := d.requestCache("GetByKind", kind)
-	if err != nil {
-		return nil, err
-	}
-	if res == nil {
-		return nil, nil
-	}
-	return res.([]common.IMember), nil
-}
-
-func (d *discovery) GetAll() ([]common.IMember, error) {
-	res, err := d.requestCache("GetAll", "")
-	if err != nil {
-		return nil, err
-	}
-	if res == nil {
-		return nil, nil
-	}
-	return res.([]common.IMember), nil
-}
-
-func (d *discovery) requestCache(funcName string, message interface{}) (interface{}, error) {
-	if d.cachePid == nil {
-		zlog.Error("discovery call cache actor err", zap.String("funcName", funcName), zap.Error(errCacheNotInit))
-		return nil, errCacheNotInit
-	}
-	res, isTimeout, err := d.cachePid.Call(funcName, message, time.Second)
-	if err != nil {
-		return nil, err
-	}
-	if isTimeout {
-		zlog.Error("discovery call cache actor err", zap.String("funcName", funcName), zap.Error(errCacheRequestTimeout))
-		return nil, errCacheRequestTimeout
-	}
-	return res, nil
+	_ = d.hub.Stop()
 }

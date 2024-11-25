@@ -1,0 +1,4 @@
+{"L":"info","T":"2024/11/25 14:09:47.208211+0800","C":"zlog@v0.0.0-20241118080758-f3e552635795/api.go:46","M":"consul connect success..","consulAddress":"127.0.0.1:8500"}
+{"L":"info","T":"2024/11/25 14:09:47.222758+0800","C":"zlog@v0.0.0-20241118080758-f3e552635795/api.go:46","M":"consul new discovery agent","clusterName":"default","knowKinds":["Tags"]}
+{"L":"info","T":"2024/11/25 14:09:47.343104+0800","C":"zlog@v0.0.0-20241118080758-f3e552635795/api.go:46","M":"consul new health  agent","serviceId":"Id"}
+{"L":"info","T":"2024/11/25 14:09:47.343104+0800","C":"zlog@v0.0.0-20241118080758-f3e552635795/api.go:46","M":"consul service  register ","serviceId":"Id","serviceName":"default","address":"127.0.0.1:8081","port":3000,"tags":["Tags"]}

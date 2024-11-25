@@ -16,7 +16,10 @@ import (
 func TestDiscovery(t *testing.T) {
 	d := New(WithKnowKinds([]string{"Tags"}))
 	d.Init()
+
+	time.Sleep(time.Second * 5)
 	members, err := d.GetByKind("Tags")
+
 	_, _ = members, err
 	d.Stop()
 

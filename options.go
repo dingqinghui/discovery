@@ -21,7 +21,7 @@ func loadOptions(options ...Option) *Options {
 	opts := new(Options)
 	opts.provider, _ = consul.NewConsulProvider("127.0.0.1:8500")
 	opts.system = actor.NewSystem()
-	opts.service = &common.BuiltinMember{
+	opts.service = &common.Member{
 		Name:    "default",
 		Id:      "Id",
 		Address: "127.0.0.1:8081",
@@ -41,7 +41,7 @@ type Options struct {
 	provider      common.IProvider
 	knowKinds     []string
 	system        actor.ISystem
-	service       common.IMember
+	service       *common.Member
 	ttl           time.Duration
 	deregisterTtl time.Duration
 }
@@ -56,7 +56,7 @@ func WithHealthTtl(ttl time.Duration) Option {
 		op.ttl = ttl
 	}
 }
-func WithRegisterService(service common.IMember) Option {
+func WithRegisterService(service *common.Member) Option {
 	return func(op *Options) {
 		op.service = service
 	}

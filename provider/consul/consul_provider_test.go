@@ -19,7 +19,7 @@ import (
 func TestConsulProvider_Register(t *testing.T) {
 	provider, _ := NewConsulProvider("127.0.0.1:8500")
 
-	service := &common.BuiltinMember{
+	service := &common.Member{
 		Name:    "clusterName",
 		Id:      "NodeId",
 		Address: "127.0.0.1",
@@ -35,7 +35,7 @@ func TestConsulProvider_Register(t *testing.T) {
 	time.Sleep(time.Second * 100)
 }
 
-func EventMemberUpdateHandler(waitIndex uint64, memberDict map[string]common.IMember) {
+func EventMemberUpdateHandler(waitIndex uint64, memberDict map[string]*common.Member) {
 	memberList := common.NewMemberList()
 	topology := memberList.UpdateClusterTopology(memberDict, waitIndex)
 	_ = topology

@@ -10,23 +10,23 @@ package common
 
 type Topology struct {
 	EventId uint64
-	Alive   []IMember
-	Joined  []IMember
-	Left    []IMember
+	Alive   []*Member
+	Joined  []*Member
+	Left    []*Member
 }
 
 type MemberList struct {
-	Members     map[string]IMember
+	Members     map[string]*Member
 	LastEventId uint64
 }
 
 func NewMemberList() *MemberList {
 	return &MemberList{
-		Members: make(map[string]IMember),
+		Members: make(map[string]*Member),
 	}
 }
 
-func (m *MemberList) UpdateClusterTopology(members map[string]IMember, lastEventId uint64) *Topology {
+func (m *MemberList) UpdateClusterTopology(members map[string]*Member, lastEventId uint64) *Topology {
 	if m.LastEventId >= lastEventId {
 		return nil
 	}

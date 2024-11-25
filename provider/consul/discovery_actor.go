@@ -27,11 +27,11 @@ type discoveryActor struct {
 	f           common.EventMemberUpdateHandler
 }
 
-func (d *discoveryActor) Init(ctx actor.IContext, msg interface{}) {
-	d.MonitorMemberStatusChanges(ctx, msg)
+func (d *discoveryActor) Init(ctx actor.IContext, msg interface{}) error {
+	return d.MonitorMemberStatusChanges(ctx)
 }
 
-func (d *discoveryActor) MonitorMemberStatusChanges(ctx actor.IContext, msg interface{}) {
+func (d *discoveryActor) MonitorMemberStatusChanges(ctx actor.IContext) error {
 	ctx.AddTimer(time.Millisecond*1, "MonitorMemberStatusChanges")
 
 	opt := &api.QueryOptions{
@@ -41,15 +41,15 @@ func (d *discoveryActor) MonitorMemberStatusChanges(ctx actor.IContext, msg inte
 	services, meta, err := d.client.Health().Service(d.clusterName, "", true, opt)
 	if err != nil {
 		zlog.Error("consul discovery agent err", zap.String("clusterName", d.clusterName), zap.Error(err))
-		return
+		return err
 	}
-	memberDict := make(map[string]common.IMember)
+	memberDict := make(map[string]*common.Member)
 	for _, service := range services {
 		for _, tag := range service.Service.Tags {
 			if !slices.Contains(d.knowKinds, tag) {
 				continue
 			}
-			member := &common.BuiltinMember{
+			member := &common.Member{
 				Id:      service.Service.ID,
 				Name:    service.Service.Service,
 				Address: service.Service.Address,
@@ -62,9 +62,10 @@ func (d *discoveryActor) MonitorMemberStatusChanges(ctx actor.IContext, msg inte
 	}
 	d.waitIndex = meta.LastIndex
 	d.f(d.waitIndex, memberDict)
-	return
+	return nil
 }
 
-func (d *discoveryActor) Stop(ctx actor.IContext, msg interface{}) {
+func (d *discoveryActor) Stop(ctx actor.IContext) error {
 	zlog.Info("discoveryActor  stop")
+	return nil
 }

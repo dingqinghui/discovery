@@ -24,16 +24,21 @@ type healthCheckActor struct {
 	ttl    time.Duration
 }
 
-func (h *healthCheckActor) Init(ctx actor.IContext, msg interface{}) {
+func (h *healthCheckActor) Init(ctx actor.IContext, msg interface{}) error {
 	ctx.AddTimer(h.ttl/3, "OnTimer")
+	return nil
 }
-func (h *healthCheckActor) UpdateStatus(ctx actor.IContext, msg interface{}) {
-	h.status = msg.(string)
+
+func (h *healthCheckActor) UpdateStatus(ctx actor.IContext, status string) error {
+	h.status = status
 	h.updateStatus()
+	return nil
 }
-func (h *healthCheckActor) OnTimer(ctx actor.IContext, msg interface{}) {
+
+func (h *healthCheckActor) OnTimer(ctx actor.IContext) error {
 	h.updateStatus()
 	ctx.AddTimer(h.ttl/3, "OnTimer")
+	return nil
 }
 
 func (h *healthCheckActor) updateStatus() {
@@ -44,6 +49,7 @@ func (h *healthCheckActor) updateStatus() {
 	}
 }
 
-func (h *healthCheckActor) Stop(ctx actor.IContext, msg interface{}) {
+func (h *healthCheckActor) Stop(ctx actor.IContext) error {
 	zlog.Info("healthCheckActor  stop")
+	return nil
 }

@@ -71,7 +71,7 @@ func (c *consulProvider) Discovery(system actor.ISystem, clusterName string, kno
 	return nil
 }
 
-func (c *consulProvider) Register(system actor.ISystem, service common.IMember, ttl, deregisterTtl time.Duration) error {
+func (c *consulProvider) Register(system actor.ISystem, service *common.Member, ttl, deregisterTtl time.Duration) error {
 	// 注册服务
 	check := &api.AgentServiceCheck{
 		TTL:                            (ttl).String(),
@@ -107,7 +107,7 @@ func (c *consulProvider) UpdateStatus(status string) error {
 	return c.healthPid.Send("UpdateStatus", status)
 }
 
-func (c *consulProvider) spawnHealthCheckActor(system actor.ISystem, service common.IMember, ttl time.Duration) error {
+func (c *consulProvider) spawnHealthCheckActor(system actor.ISystem, service *common.Member, ttl time.Duration) error {
 	if c.healthPid != nil {
 		return nil
 	}
